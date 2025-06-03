@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Enrollment Form</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .form-section {
+            padding: 40px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            position: relative;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 0.95rem;
+        }
+
+        .required {
+            color: #e74c3c;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e8ed;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: #fafbfc;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #4facfe;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+            transform: translateY(-1px);
+        }
+
+        input.error, select.error {
+            border-color: #e74c3c;
+            background: rgba(231, 76, 60, 0.05);
+        }
+
+        .error-message {
+            color: #e74c3c;
+            font-size: 0.85rem;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 150px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            color: #333;
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .admin-section {
+            background: #f8f9fa;
+            padding: 30px;
+            border-top: 3px solid #4facfe;
+            margin-top: 40px;
+        }
+
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .student-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .student-item {
+            background: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .student-info {
+            flex-grow: 1;
+        }
+
+        .student-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .detail-item {
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .remove-btn {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            min-width: auto;
+        }
+
+        .remove-btn:hover {
+            background: #ff5252;
+        }
+
+        .admin-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ffa8a8 100%);
+            color: white;
+        }
+
+        .password-group {
+            display: flex;
+            gap: 10px;
+            align-items: end;
+        }
+
+        .password-input {
+            flex-grow: 1;
+        }
+
+        .generate-btn {
+            padding: 15px 20px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            min-width: auto;
+        }
+
+        .generate-btn:hover {
+            background: #218838;
+        }
+
+        .info-note {
+            background: #e3f2fd;
+            color: #1565c0;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+
+        .github-note {
+            background: #f0f9ff;
+            color: #0c4a6e;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #0ea5e9;
+        }
+
+        .github-note h4 {
+            margin: 0 0 8px 0;
+            color: #0c4a6e;
+        }
+
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .button-group, .admin-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            button {
+                width: 100%;
+                max-width: 300px;
+            }
+
+            .student-details {
+                grid-template-columns: 1fr;
+            }
+
+            .password-group {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .generate-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎓 Student Enrollment</h1>
+            <p>Academic Data Collection System</p>
+        </div>
+
+        <div class="form-section">
+            <div class="github-note">
+                <h4>📱 Mobile-Friendly Enrollment</h4>
+                <p>Students can fill this form from any device. Data is stored locally in your browser and can be downloaded by administrators.</p>
+            </div>
+
+            <div class="success-message" id="successMessage">
+                Student added successfully!
+            </div>
+
+            <form id="studentForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="username">Username <span class="required">*</span></label>
+                        <input type="text" id="username" name="username" required 
+                               placeholder="e.g., F25063147" 
+                               pattern="[A-Za-z0-9]{9}" 
+                               maxlength="9"
+                               title="Username must be exactly 9 characters (letters and numbers only)">
+                        <div class="error-message" id="usernameError">Username must be exactly 9 characters (letters and numbers only)</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Date of Birth (DDMM@YYYY) <span class="required">*</span></label>
+                        <input type="text" id="password" name="password" required 
+                               placeholder="e.g., 3001@2013" 
+                               pattern="^(\d{4}[\@]\d{4})$"
+                               title="Enter date in format DDMM@YYYY">
+                        <div class="error-message" id="passwordError">Please enter date of birth in DDMM@YYYY format</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="fullName">Name <span class="required">*</span></label>
+                        <input type="text" id="fullName" name="fullName" required placeholder="Enter full name">
+                        <div class="error-message" id="fullNameError">Full name is required</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email Address <span class="required">*</span></label>
+                        <input type="email" id="email" name="email" required placeholder="Enter email address">
+                        <div class="error-message" id="emailError">Valid email address is required</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="class">Class <span class="required">*</span></label>
+                        <select id="class" name="class" required>
+                            <option value="">Select Class</option>
+                            <option value="6">Class 6</option>
+                            <option value="7">Class 7</option>
+                            <option value="8">Class 8</option>
+                            <option value="9">Class 9</option>
+                            <option value="10">Class 10</option>
+                        </select>
+                        <div class="error-message" id="classError">Please select a class</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="course">Course <span class="required">*</span></label>
+                        <select id="course" name="course" required>
+                            <option value="">Select Course</option>
+                            <option value="STATE">State Board</option>
+                            <option value="CBSE">CBSE</option>
+                            <option value="GCC">GCC</option>
+                        </select>
+                        <div class="error-message" id="courseError">Please select a course</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="batch">Batch <span class="required">*</span></label>
+                        <select id="batch" name="batch" required disabled>
+                            <option value="">Select class and course first</option>
+                        </select>
+                        <div class="error-message" id="batchError">Please select a batch</div>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button type="submit" class="btn-primary">Add Student</button>
+                    <button type="button" class="btn-secondary" onclick="clearForm()">Clear Form</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Admin Section - Only visible to admin -->
+        <div class="admin-section" id="adminSection" style="display: none;">
+            <div class="admin-header">
+                <h3>📋 Enrolled Students (<span id="studentCount">0</span>)</h3>
+            </div>
+            <div class="student-list" id="studentList"></div>
+            <div class="admin-buttons">
+                <button type="button" class="btn-success" onclick="downloadExcel()">📥 Download Excel</button>
+                <button type="button" class="btn-danger" onclick="clearAllStudents()">🗑️ Clear All Data</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let students = JSON.parse(localStorage.getItem('enrolledStudents') || '[]');
+        let isAdmin = false;
+
+        // Save students to localStorage whenever the array changes
+        function saveStudents() {
+            localStorage.setItem('enrolledStudents', JSON.stringify(students));
+        }
+
+        // Check for admin access (simple password check)
+        function checkAdminAccess() {
+            const adminPassword = prompt("Enter admin password to access data management:");
+            if (adminPassword === "admin123") { // Change this password
+                isAdmin = true;
+                document.getElementById('adminSection').style.display = 'block';
+                updateStudentList();
+            }
+        }
+
+        // Double click on header to access admin
+        document.querySelector('.header').addEventListener('dblclick', checkAdminAccess);
+
+        // Password generation function - removed since using DOB
+        function formatDateOfBirth() {
+            const dobField = document.getElementById('password');
+            let value = dobField.value.replace(/[^\d@]/g, ''); // Allow only digits, @, and /
+            
+            // Auto-format as user types
+            if (value.length >= 4 && value.charAt(4) !== '@' && value.charAt(4) !== '@') {
+                if (value.length === 4) {
+                    value = value + '@';
+                } 
+            }
+            
+            dobField.value = value;
+        }
+
+        // Add input event listener for DOB formatting
+        document.getElementById('password').addEventListener('input', formatDateOfBirth);
+
+        // Batch generation logic
+        function generateBatches(selectedClass, selectedCourse) {
+            const batches = [];
+            const classNum = selectedClass;
+            
+            if (selectedCourse === 'CBSE') {
+                for (let i = 1; i <= 9; i++) {
+                    batches.push(`${classNum}C${i}`);
+                }
+            } else if (selectedCourse === 'GCC') {
+                for (let i = 1; i <= 3; i++) {
+                    batches.push(`${classNum}G${i}`);
+                }
+            } else if (selectedCourse === 'STATE') {
+                for (let i = 1; i <= 9; i++) {
+                    batches.push(`${classNum}S${i}`);
+                }
+            }
+            
+            return batches;
+        }
+
+        // Update batch dropdown when class or course changes
+        function updateBatchOptions() {
+            const classSelect = document.getElementById('class');
+            const courseSelect = document.getElementById('course');
+            const batchSelect = document.getElementById('batch');
+            
+            const selectedClass = classSelect.value;
+            const selectedCourse = courseSelect.value;
+            
+            // Clear existing options
+            batchSelect.innerHTML = '<option value="">Select Batch</option>';
+            
+            if (selectedClass && selectedCourse) {
+                const batches = generateBatches(selectedClass, selectedCourse);
+                batches.forEach(batch => {
+                    const option = document.createElement('option');
+                    option.value = batch;
+                    option.textContent = batch;
+                    batchSelect.appendChild(option);
+                });
+                batchSelect.disabled = false;
+            } else {
+                batchSelect.innerHTML = '<option value="">Select class and course first</option>';
+                batchSelect.disabled = true;
+            }
+        }
+
+        // Add event listeners for class and course changes
+        document.getElementById('class').addEventListener('change', updateBatchOptions);
+        document.getElementById('course').addEventListener('change', updateBatchOptions);
+
+        // Username validation
+        document.getElementById('username').addEventListener('input', function(e) {
+            const username = e.target.value;
+            const regex = /^[A-Za-z0-9]{0,9}$/;
+            
+            if (!regex.test(username)) {
+                e.target.value = username.slice(0, -1); // Remove invalid character
+            }
+            
+            validateField('username');
+        });
+
+        // Real-time validation
+        function validateField(fieldName) {
+            const field = document.getElementById(fieldName);
+            const errorDiv = document.getElementById(fieldName + 'Error');
+            let isValid = true;
+
+            // Remove existing error styling
+            field.classList.remove('error');
+            errorDiv.style.display = 'none';
+
+            switch(fieldName) {
+                case 'username':
+                    if (field.value.length !== 9 || !/^[A-Za-z0-9]{9}$/.test(field.value)) {
+                        isValid = false;
+                        errorDiv.textContent = 'Username must be exactly 9 characters (letters and numbers only)';
+                    }
+                    break;
+                case 'password':
+                    // Validate date of birth format
+                    const dobRegex = /^(\d{4}[\@]\d{4})$/;
+                    if (!dobRegex.test(field.value)) {
+                        isValid = false;
+                        errorDiv.textContent = 'Please enter date of birth in DDMM@YYYY format';
+                    }
+                    break;
+                case 'fullName':
+                    if (field.value.trim().length < 2) {
+                        isValid = false;
+                        errorDiv.textContent = 'Full name must be at least 2 characters';
+                    }
+                    break;
+                case 'email':
+                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    if (!emailRegex.test(field.value)) {
+                        isValid = false;
+                        errorDiv.textContent = 'Please enter a valid email address';
+                    }
+                    break;
+                case 'class':
+                case 'course':
+                case 'batch':
+                    if (!field.value) {
+                        isValid = false;
+                        errorDiv.textContent = `Please select a ${fieldName}`;
+                    }
+                    break;
+            }
+
+            if (!isValid) {
+                field.classList.add('error');
+                errorDiv.style.display = 'block';
+            }
+
+            return isValid;
+        }
+
+        // Add real-time validation to all fields
+        ['username', 'password', 'fullName', 'email', 'class', 'course', 'batch'].forEach(fieldName => {
+            const field = document.getElementById(fieldName);
+            field.addEventListener('blur', () => validateField(fieldName));
+        });
+
+        // Form submission
+        document.getElementById('studentForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Validate all fields
+            const fieldsToValidate = ['username', 'password', 'fullName', 'email', 'class', 'course', 'batch'];
+            let allValid = true;
+            
+            fieldsToValidate.forEach(fieldName => {
+                if (!validateField(fieldName)) {
+                    allValid = false;
+                }
+            });
+            
+            // Check for duplicate username
+            const username = document.getElementById('username').value;
+            const existingStudent = students.find(student => student.username === username);
+            if (existingStudent) {
+                const usernameField = document.getElementById('username');
+                const errorDiv = document.getElementById('usernameError');
+                usernameField.classList.add('error');
+                errorDiv.textContent = 'Username already exists. Please use a different username.';
+                errorDiv.style.display = 'block';
+                allValid = false;
+            }
+
+            if (!allValid) {
+                return;
+            }
+            
+            // Collect form data
+            const formData = new FormData(this);
+            const student = {};
+            
+            for (let [key, value] of formData.entries()) {
+                student[key] = value;
+            }
+            
+            // Add timestamp
+            student.timestamp = new Date().toLocaleString();
+            
+            students.push(student);
+            saveStudents(); // Save to localStorage
+            
+            if (isAdmin) {
+                updateStudentList();
+            }
+            
+            showSuccessMessage();
+            clearForm();
+        });
+
+        function updateStudentList() {
+            const studentList = document.getElementById('studentList');
+            const studentCount = document.getElementById('studentCount');
+            
+            studentCount.textContent = students.length;
+            
+            studentList.innerHTML = students.map((student, index) => `
+                <div class="student-item">
+                    <div class="student-info">
+                        <strong>${student.fullName}</strong> (${student.username})
+                        <div class="student-details">
+                            <div class="detail-item">📅 DOB: ${student.password}</div>
+                            <div class="detail-item">📧 ${student.email}</div>
+                            <div class="detail-item">🎓 Class ${student.class}</div>
+                            <div class="detail-item">📚 ${student.course}</div>
+                            <div class="detail-item">👥 ${student.batch}</div>
+                            <div class="detail-item">⏰ ${student.timestamp}</div>
+                        </div>
+                    </div>
+                    <button class="remove-btn" onclick="removeStudent(${index})">Remove</button>
+                </div>
+            `).join('');
+        }
+
+        function removeStudent(index) {
+            if (confirm('Are you sure you want to remove this student?')) {
+                students.splice(index, 1);
+                saveStudents(); // Save to localStorage
+                updateStudentList();
+            }
+        }
+
+        function clearAllStudents() {
+            if (students.length > 0 && confirm('Are you sure you want to clear all student data? This cannot be undone!')) {
+                students = [];
+                saveStudents(); // Save to localStorage
+                updateStudentList();
+            }
+        }
+
+        function clearForm() {
+            document.getElementById('studentForm').reset();
+            
+            // Clear error states
+            document.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
+            document.querySelectorAll('.error-message').forEach(el => el.style.display = 'none');
+            
+            // Reset batch dropdown
+            const batchSelect = document.getElementById('batch');
+            batchSelect.innerHTML = '<option value="">Select class and course first</option>';
+            batchSelect.disabled = true;
+        }
+
+        function showSuccessMessage() {
+            const message = document.getElementById('successMessage');
+            message.style.display = 'block';
+            setTimeout(() => {
+                message.style.display = 'none';
+            }, 3000);
+        }
+
+        function downloadExcel() {
+            if (students.length === 0) {
+                alert('No students to download!');
+                return;
+            }
+            
+            // Create worksheet data with only required columns in specific format
+            const wsData = [
+                ['Username', 'Password', 'Batch', 'Name', 'Email Address'], // Headers
+                ...students.map(student => [
+                    student.username || '',
+                    student.password || '', // This will be the DOB
+                    student.batch || '',
+                    student.fullName || '',
+                    student.email || ''
+                ])
+            ];
+            
+            // Create workbook and worksheet
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(wsData);
+            
+            // Set column widths
+            ws['!cols'] = [
+                {wch: 15}, // Username
+                {wch: 12}, // Password
+                {wch: 10}, // Batch
+                {wch: 25}, // Name
+                {wch: 30}  // Email Address
+            ];
+            
+            // Add worksheet to workbook
+            XLSX.utils.book_append_sheet(wb, ws, 'Student Enrollment');
+            
+            // Generate filename with current date
+            const date = new Date().toISOString().split('T')[0];
+            const filename = `student_enrollment_${date}.xlsx`;
+            
+            // Save the file
+            XLSX.writeFile(wb, filename);
+            
+            alert(`Excel file downloaded as "${filename}"\n\nNote: Data is stored locally in your browser. Share this GitHub link with students to add their information.`);
+        }
+    </script>
+</body>
+</html>
