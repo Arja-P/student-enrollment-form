@@ -383,7 +383,7 @@ m<!DOCTYPE html>
                         <label for="course">Course <span class="required">*</span></label>
                         <select id="course" name="course" required>
                             <option value="">Select Course</option>
-                            <option value="STATE">State Board</option>
+                            <option value="STATE">State</option>
                             <option value="CBSE">CBSE</option>
                             <option value="GCC">GCC</option>
                         </select>
@@ -466,15 +466,15 @@ m<!DOCTYPE html>
             
             if (selectedCourse === 'CBSE') {
                 for (let i = 1; i <= 9; i++) {
-                    batches.push(`${classNum}C${i}`);
+                    batches.push(`${classNum}C${i} : 2025-26`);
                 }
             } else if (selectedCourse === 'GCC') {
                 for (let i = 1; i <= 3; i++) {
-                    batches.push(`${classNum}G${i}`);
+                    batches.push(`${classNum}G${i} : 2025-26`);
                 }
             } else if (selectedCourse === 'STATE') {
                 for (let i = 1; i <= 9; i++) {
-                    batches.push(`${classNum}S${i}`);
+                    batches.push(`${classNum}S${i} : 2025-26`);
                 }
             }
             
